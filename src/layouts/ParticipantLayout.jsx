@@ -67,11 +67,12 @@ export default function ParticipantLayout() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, switchRole, pendingRespondentCount } = useUser()
-  const [alertDismissed, setAlertDismissed] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const isRespondentToo = user.roles.includes('respondent')
 
   function handleSwitchToRespondent() {
+    setDropdownOpen(false)
     switchRole('respondent')
     navigate('/respondent/dashboard')
   }
@@ -93,13 +94,62 @@ export default function ParticipantLayout() {
           </div>
         </div>
 
-        {/* Active role pill */}
-        <div className="px-4 pt-3 pb-1">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#1e4d8c] shrink-0" />
-            <span className="text-[11px] font-semibold text-[#1e4d8c] tracking-wide">DC Participant</span>
+        {/* Role switcher dropdown */}
+        {isRespondentToo && (
+          <div className="px-3 pt-3 pb-1 relative">
+            <button
+              onClick={() => setDropdownOpen((o) => !o)}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-[#dbeafe] border border-[#bfdbfe] hover:bg-blue-100 transition-colors"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-[#1e4d8c] shrink-0" />
+              <span className="text-[11px] font-semibold text-[#1e4d8c] flex-1 text-left tracking-wide">DC Participant</span>
+              {pendingRespondentCount > 0 && (
+                <span className="text-[9px] font-bold bg-violet-600 text-white px-1.5 py-0.5 rounded-full shrink-0">
+                  {pendingRespondentCount}
+                </span>
+              )}
+              <svg
+                className={`w-3.5 h-3.5 text-[#1e4d8c] transition-transform duration-150 ${dropdownOpen ? 'rotate-180' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {dropdownOpen && (
+              <div className="absolute left-3 right-3 top-[calc(100%-4px)] mt-1 bg-white border border-[#e2e8f0] rounded-xl shadow-lg z-30 overflow-hidden">
+                {/* Current — Participant */}
+                <div className="flex items-center gap-2.5 px-3 py-2.5 bg-[#f0f6ff] border-b border-[#e2e8f0]">
+                  <svg className="w-3.5 h-3.5 text-[#1e4d8c] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <div>
+                    <p className="text-xs font-semibold text-[#1e4d8c]">DC Participant</p>
+                    <p className="text-[10px] text-blue-400">Current view</p>
+                  </div>
+                </div>
+                {/* Switch to — Respondent */}
+                <button
+                  onClick={handleSwitchToRespondent}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-violet-50 transition-colors group"
+                >
+                  <div className="w-3.5 h-3.5 shrink-0" />
+                  <div className="flex-1 text-left">
+                    <p className="text-xs font-medium text-gray-700 group-hover:text-violet-700">360 Respondent</p>
+                    {pendingRespondentCount > 0 && (
+                      <p className="text-[10px] text-violet-500">{pendingRespondentCount} pending</p>
+                    )}
+                  </div>
+                  {pendingRespondentCount > 0 && (
+                    <span className="text-[9px] font-bold bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full shrink-0">
+                      {pendingRespondentCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-3 space-y-0.5">
@@ -110,6 +160,7 @@ export default function ParticipantLayout() {
               <Link
                 key={item.to}
                 to={item.to}
+                onClick={() => setDropdownOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                   isActive
                     ? 'bg-[#dbeafe] text-[#1e4d8c] font-medium'
@@ -122,38 +173,6 @@ export default function ParticipantLayout() {
             )
           })}
         </nav>
-
-        {/* Switch to respondent view */}
-        {isRespondentToo && (
-          <div className="px-3 pb-2 border-t border-[#e2e8f0] pt-3">
-            <button
-              onClick={handleSwitchToRespondent}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-[#e2e8f0] bg-[#f8f9fc] hover:bg-violet-50 hover:border-violet-200 transition-colors group"
-            >
-              <div className="relative shrink-0">
-                <div className="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </div>
-                {pendingRespondentCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
-                    {pendingRespondentCount}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-xs font-medium text-[#1a1f2e] group-hover:text-violet-700">Switch to Respondent</p>
-                {pendingRespondentCount > 0 && (
-                  <p className="text-[10px] text-red-500">{pendingRespondentCount} pending feedback</p>
-                )}
-              </div>
-              <svg className="w-3.5 h-3.5 text-gray-400 group-hover:text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        )}
 
         {/* User card */}
         <div className="px-3 py-4 border-t border-[#e2e8f0]">
@@ -179,30 +198,31 @@ export default function ParticipantLayout() {
       </aside>
 
       {/* Page content */}
-      <main className="flex-1 overflow-auto">
-        {/* Respondent pending alert */}
-        {isRespondentToo && pendingRespondentCount > 0 && !alertDismissed && (
-          <div className="bg-violet-50 border-b border-violet-200 px-6 py-2.5 flex items-center gap-3">
-            <svg className="w-4 h-4 text-violet-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            <p className="text-xs text-violet-700 flex-1">
-              You have <span className="font-semibold">{pendingRespondentCount} pending 360 feedback {pendingRespondentCount === 1 ? 'form' : 'forms'}</span> to complete for other DC participants.
-            </p>
+      <main className="flex-1 overflow-auto" onClick={() => setDropdownOpen(false)}>
+        {/* Nomination CTA button */}
+        {isRespondentToo && pendingRespondentCount > 0 && (
+          <div className="px-8 pt-6 pb-0">
             <button
-              onClick={handleSwitchToRespondent}
-              className="text-xs font-medium text-violet-700 hover:text-violet-900 underline underline-offset-2 shrink-0"
+              onClick={(e) => { e.stopPropagation(); handleSwitchToRespondent() }}
+              className="w-full flex items-center gap-4 px-5 py-3.5 bg-white border border-violet-200 rounded-xl hover:bg-violet-50 hover:border-violet-300 transition-all group shadow-sm"
             >
-              Go to Respondent View →
-            </button>
-            <button
-              onClick={() => setAlertDismissed(true)}
-              className="text-violet-400 hover:text-violet-600 transition-colors shrink-0 ml-1"
-              aria-label="Dismiss"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
+                <svg className="w-4.5 h-4.5 text-violet-600" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <div className="flex-1 text-left min-w-0">
+                <p className="text-sm font-semibold text-[#1a1f2e] group-hover:text-violet-700">
+                  You've been nominated — rate {pendingRespondentCount} participant{pendingRespondentCount > 1 ? 's' : ''}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">Your 360 feedback is pending · Due 30 Jun 2025</p>
+              </div>
+              <span className="text-xs font-semibold text-violet-600 group-hover:text-violet-800 shrink-0 flex items-center gap-1">
+                Rate now
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
             </button>
           </div>
         )}

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 
@@ -17,10 +18,12 @@ export default function RespondentLayout() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, switchRole, pendingParticipantCount } = useUser()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const isParticipantToo = user.roles.includes('participant')
 
   function handleSwitchToParticipant() {
+    setDropdownOpen(false)
     switchRole('participant')
     navigate('/participant/dashboard')
   }
@@ -42,13 +45,62 @@ export default function RespondentLayout() {
           </div>
         </div>
 
-        {/* Active role pill */}
-        <div className="px-4 pt-3 pb-1">
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-violet-50 border border-violet-200 rounded-lg">
-            <div className="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0" />
-            <span className="text-[11px] font-semibold text-violet-700 tracking-wide">360 Respondent</span>
+        {/* Role switcher dropdown */}
+        {isParticipantToo && (
+          <div className="px-3 pt-3 pb-1 relative">
+            <button
+              onClick={() => setDropdownOpen((o) => !o)}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-violet-50 border border-violet-200 hover:bg-violet-100 transition-colors"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-violet-600 shrink-0" />
+              <span className="text-[11px] font-semibold text-violet-700 flex-1 text-left tracking-wide">360 Respondent</span>
+              {pendingParticipantCount > 0 && (
+                <span className="text-[9px] font-bold bg-amber-500 text-white px-1.5 py-0.5 rounded-full shrink-0">
+                  {pendingParticipantCount}
+                </span>
+              )}
+              <svg
+                className={`w-3.5 h-3.5 text-violet-600 transition-transform duration-150 ${dropdownOpen ? 'rotate-180' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {dropdownOpen && (
+              <div className="absolute left-3 right-3 top-[calc(100%-4px)] mt-1 bg-white border border-[#e2e8f0] rounded-xl shadow-lg z-30 overflow-hidden">
+                {/* Current — Respondent */}
+                <div className="flex items-center gap-2.5 px-3 py-2.5 bg-violet-50 border-b border-[#e2e8f0]">
+                  <svg className="w-3.5 h-3.5 text-violet-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <div>
+                    <p className="text-xs font-semibold text-violet-700">360 Respondent</p>
+                    <p className="text-[10px] text-violet-400">Current view</p>
+                  </div>
+                </div>
+                {/* Switch to — Participant */}
+                <button
+                  onClick={handleSwitchToParticipant}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-blue-50 transition-colors group"
+                >
+                  <div className="w-3.5 h-3.5 shrink-0" />
+                  <div className="flex-1 text-left">
+                    <p className="text-xs font-medium text-gray-700 group-hover:text-[#1e4d8c]">DC Participant</p>
+                    {pendingParticipantCount > 0 && (
+                      <p className="text-[10px] text-amber-500">{pendingParticipantCount} pending</p>
+                    )}
+                  </div>
+                  {pendingParticipantCount > 0 && (
+                    <span className="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full shrink-0">
+                      {pendingParticipantCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-3 space-y-0.5">
@@ -59,6 +111,7 @@ export default function RespondentLayout() {
               <Link
                 key={item.to}
                 to={item.to}
+                onClick={() => setDropdownOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                   isActive
                     ? 'bg-violet-50 text-violet-700 font-medium'
@@ -71,31 +124,6 @@ export default function RespondentLayout() {
             )
           })}
         </nav>
-
-        {/* Switch to participant view */}
-        {isParticipantToo && (
-          <div className="px-3 pb-2 border-t border-[#e2e8f0] pt-3">
-            <button
-              onClick={handleSwitchToParticipant}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-[#e2e8f0] bg-[#f8f9fc] hover:bg-[#dbeafe] hover:border-[#bfdbfe] transition-colors group"
-            >
-              <div className="w-6 h-6 rounded-full bg-[#1e4d8c] flex items-center justify-center shrink-0">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <div className="flex-1 text-left min-w-0">
-                <p className="text-xs font-medium text-[#1a1f2e] group-hover:text-[#1e4d8c]">Switch to Participant</p>
-                {pendingParticipantCount > 0 && (
-                  <p className="text-[10px] text-amber-600">{pendingParticipantCount} pending tasks</p>
-                )}
-              </div>
-              <svg className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#1e4d8c]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        )}
 
         {/* User card */}
         <div className="px-3 py-4 border-t border-[#e2e8f0]">
@@ -121,32 +149,26 @@ export default function RespondentLayout() {
       </aside>
 
       {/* Page content */}
-      <main className="flex-1 overflow-auto">
-        {/* Participant pending alert */}
+      <main className="flex-1 overflow-auto" onClick={() => setDropdownOpen(false)}>
+        {/* DC journey pending alert — kept minimal */}
         {isParticipantToo && pendingParticipantCount > 0 && (
-          <ParticipantAlert count={pendingParticipantCount} onSwitch={handleSwitchToParticipant} />
+          <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center gap-3">
+            <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            <p className="text-xs text-amber-700 flex-1">
+              You have <span className="font-semibold">{pendingParticipantCount} pending tasks</span> in your DC journey.
+            </p>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleSwitchToParticipant() }}
+              className="text-xs font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2 shrink-0"
+            >
+              Go to Participant View →
+            </button>
+          </div>
         )}
         <Outlet />
       </main>
-    </div>
-  )
-}
-
-function ParticipantAlert({ count, onSwitch }) {
-  return (
-    <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center gap-3">
-      <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-      </svg>
-      <p className="text-xs text-amber-700 flex-1">
-        Your DC journey has <span className="font-semibold">{count} pending tasks</span> — don't let your own deadlines slip while you fill feedback.
-      </p>
-      <button
-        onClick={onSwitch}
-        className="text-xs font-medium text-amber-700 hover:text-amber-900 underline underline-offset-2 shrink-0"
-      >
-        Go to Participant View →
-      </button>
     </div>
   )
 }
